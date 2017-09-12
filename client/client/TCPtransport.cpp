@@ -38,8 +38,8 @@ void TCPtransport::clr(){
 	ZeroMemory(SendBuf,BufLen);
 }
 
-void TCPtransport::send(char *nickname,int id,float x,float z,float rot){
-	sprintf(SendBuf,"%s %d %f %f %f\n%s",nickname,id,x,z,rot,Buf);
+void TCPtransport::send(char *nickname,int id,float x,float z,float rot,int hp,int kil){
+	sprintf(SendBuf,"%s %d %f %f %f %d %d\n%s",nickname,id,x,z,rot,hp,kil,Buf);
 	LEN=max(LEN,strlen(SendBuf));
 	::send(tcp_socket, SendBuf, BufLen, 0);
 	clr();

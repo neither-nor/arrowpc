@@ -23,6 +23,27 @@
 #include "TCPtransport.h"
 #include "TXT.h"
 using namespace std;
+struct Rklst{
+	char name[110];
+	int kil;
+	int id;
+	friend bool operator <(Rklst x,Rklst y){
+		return x.kil!=y.kil?x.kil>y.kil:x.id>y.id;
+	}
+};
+struct evt{
+	char des[110];
+	int tim;
+	evt(){
+
+	}
+	evt(char *_des,int _tim){
+		sprintf(des,"%s",_des);
+		tim=_tim;
+	}
+};
+evt evtq[110];
+int evthd,evttl;
 TCPtransport tcp;
 Show *p[5010];
 set<int>Sd;
@@ -42,6 +63,7 @@ int lstarrow;
 int lst;
 char fps[20];
 int ctim,ftim;
+Rklst rk[110];
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam){
 	switch(msg){
 		case WM_PAINT:{
@@ -124,12 +146,43 @@ void Render(){
 			}
 		}
 	}
+	int tcnt=0;
 	for(it=liv.begin();it!=liv.end();it++){
 		ply[*it]->Render();
+		tcnt++;
+		sprintf(rk[tcnt].name,"%s",ply[*it]->nickname);
+		rk[tcnt].kil=ply[*it]->kil;
+		rk[tcnt].id=*it;
 	}
+	sort(rk+1,rk+tcnt+1);
 	ftim=clock()-ftim;
-	sprintf(fps,"%d %d %d",ftim,ctim,tcp.LEN);
-	TXT::Render(fps);
+	char rklst[510];
+	memset(rklst,0,sizeof(rklst));
+	char *trk=rklst;
+	sprintf(trk,"≈≈––∞Ò      \n");
+	while(*trk){
+		trk++;
+	}
+	for(i=1;i<=tcnt;i++){
+		sprintf(trk,"%d %s %d\n",i,rk[i].name,rk[i].kil);
+		while(*trk){
+			trk++;
+		}
+	}
+	TXT::Render(rklst);
+	while(evthd!=evttl&&evtq[evthd].tim<clock()-4000){
+		(evthd%=1000)++;
+	}
+	char evtbuf[510];
+	char *tevt=evtbuf;
+	memset(evtbuf,0,sizeof(evtbuf));
+	for(i=evthd;i!=evttl;(i%=1000)++){
+		sprintf(tevt,"%s\n",evtq[i].des);
+		while(*tevt){
+			tevt++;
+		}
+	}
+	TXT::Render(evtbuf,DT_TOP|DT_LEFT,D3DCOLOR_XRGB(255,0,0));
 	Show::Device->EndScene();
 	Show::Device->Present(NULL,NULL,NULL,NULL);
 }
@@ -146,7 +199,7 @@ float getfloat(int &i){
 void Communicate(){
 	ctim=clock();
 	int i;
-	tcp.send(nickname,id,Entity_3d::camx,Entity_3d::camz,rot);
+	tcp.send(nickname,id,Entity_3d::camx,Entity_3d::camz,rot,ply[id]->hp,ply[id]->kil);
 	ZeroMemory(buf,10010);
 	tcp.recv();
 	ctim=clock()-ctim;
@@ -189,20 +242,24 @@ void Communicate(){
 			int p1=getint(i);
 			int p2=getint(i);
 			sprintf(buf,"%d %d\n",p1,id);
-			if(p1==id){
-				ply[id]->exp++;
-			}
+			char tmp[110];
+			sprintf(tmp,"%s killed %s",ply[p1]->nickname,ply[p2]->nickname);
+			evtq[(evttl%=1000)++]=evt(tmp,clock());
+			ply[p1]->exp++;
+			ply[p1]->kil++;
 		}
 		else{
 			char nm[110];
 			memset(nm,0,sizeof(nm));
 			sscanf(s[i],"%s",nm);
-			int t;
+			int t,thp,tkil;
 			float tx,tz,trot;
 			t=getint(i);
 			tx=getfloat(i);
 			tz=getfloat(i);
 			trot=getfloat(i);
+			thp=getint(i);
+			tkil=getint(i);
 			if(t==0){
 				continue;
 			}
@@ -210,9 +267,12 @@ void Communicate(){
 				ply[t]=new Player(nm);
 				liv.insert(t);
 			}
+
 			ply[t]->posx=tx;
 			ply[t]->posz=tz;
 			ply[t]->rot=trot;
+			ply[t]->hp=thp;
+			ply[t]->kil=tkil;
 		}
 	}
 }
@@ -238,6 +298,11 @@ void Move(){
 }
 void Refresh(){
 	Move();
+	if(ply[id]->exp>ply[id]->lev){
+		ply[id]->lev++;
+		ply[id]->hp++;
+		ply[id]->exp=0;
+	}
 	lst=clock();
 }
 void Release(){
@@ -261,7 +326,7 @@ INT WINAPI WinMain(HINSTANCE hInst,HINSTANCE,LPSTR,INT){
 	fclose(plyinit);
 	tcp.init("106.14.159.92",81);
 	ply[0]=new Player("system");
-	tcp.send("nickname",0,-100.f,-100.f,0.f);
+	tcp.send("nickname",0,-100.f,-100.f,0.f,0,0);
 	ZeroMemory(buf,10010);
 	tcp.recv();
 	memcpy(S,tcp.GetBuf,sizeof(S));

@@ -41,6 +41,7 @@ void Player::init(){
 Player::Player(char *nm){
 	init();
 	int i;
+	kil=0;
 	memset(nickname,0,sizeof(nickname));
 	for(i=0;nm[i];i++){
 		nickname[i]=nm[i];
@@ -63,9 +64,10 @@ void Player::Render(){
 
 	mod.Render();
 
-	hps.hp=.5f;
+	hps.hp=hp*.25;
 	hps.posx=posx;
 	hps.posz=posz;
+
 	hps.Render();
 
 	posy=3;

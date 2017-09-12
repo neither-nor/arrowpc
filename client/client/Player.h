@@ -13,6 +13,7 @@ public:
 	int hp;
 	int lev;
 	int exp;
+	int kil;
 private:
 	LPD3DXMESH TextMesh;
 	static MOD mod;

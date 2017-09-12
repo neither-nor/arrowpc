@@ -8,6 +8,8 @@ public:
 	~TXT();
 	static ID3DXFont* g_font;
 	static void Render(char *txt);
+	static void Render(char *txt,DWORD format);
+	static void Render(char *txt,DWORD format,DWORD color);
 	static bool inited;
 };
 

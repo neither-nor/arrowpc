@@ -13,7 +13,7 @@ public:
 	char Buf[BufLen];
 	void add(char *s);
 	void clr();
-	void send(char *nickname,int id,float x,float z,float rot);
+	void send(char *nickname,int id,float x,float z,float rot,int hp,int kil);
 	void recv();
 	int LEN;
 private:
