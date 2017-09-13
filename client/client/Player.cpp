@@ -18,7 +18,6 @@ void Player::init(){
 	}
 	inited=1;
 	mod.init("wyr.x");
-
 	ZeroMemory(&mtrlfont,sizeof(D3DMATERIAL9));
 	//Âþ·´Éä¹â  
 	mtrlfont.Diffuse.r  = 1.0f;
@@ -42,6 +41,8 @@ Player::Player(char *nm){
 	init();
 	int i;
 	kil=0;
+	weapon=2;
+	skill1=skill2=0;
 	memset(nickname,0,sizeof(nickname));
 	for(i=0;nm[i];i++){
 		nickname[i]=nm[i];

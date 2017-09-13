@@ -50,6 +50,7 @@ public:
 	virtual ~Show();
 	static int nowt;
 	virtual void Render()=0;
+	virtual void Refresh()=0;
 	float posx,posz,posy;
 	float rot;
 	float rotx,rotz;
@@ -66,6 +67,7 @@ class Entity_Screen:public Show{
 public:
 	virtual void preSet();
 	virtual void Render()=0;
+	virtual void Refresh()=0;
 };
 
 class Entity_3d:public Show{
@@ -76,8 +78,8 @@ public:
 	static float camz;
 	virtual void preSet();
 	virtual void Render()=0;
+	virtual void Refresh();
 	static bool Inited;
 private:
-	
 	static D3DLIGHT9 light;
 };

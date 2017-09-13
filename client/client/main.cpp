@@ -22,35 +22,17 @@
 #include "Arrow.h"
 #include "TCPtransport.h"
 #include "TXT.h"
+#include "Evtlist.h"
+#include "Ranklist.h"
 using namespace std;
-struct Rklst{
-	char name[110];
-	int kil;
-	int id;
-	friend bool operator <(Rklst x,Rklst y){
-		return x.kil!=y.kil?x.kil>y.kil:x.id>y.id;
-	}
-};
-struct evt{
-	char des[110];
-	int tim;
-	evt(){
-
-	}
-	evt(char *_des,int _tim){
-		sprintf(des,"%s",_des);
-		tim=_tim;
-	}
-};
-evt evtq[110];
-int evthd,evttl;
 TCPtransport tcp;
 Show *p[5010];
 set<int>Sd;
 int n;
 bool down[210];
 char buf[10010];
-char nickname[110]="xrfsb";
+char nickname[110];
+int nicknamelen;
 float rot;
 Player* ply[110];
 char S[10010];
@@ -59,37 +41,111 @@ int etot;
 char mp[110][110];
 int id;
 set<int>liv;
-int lstarrow;
 int lst;
-char fps[20];
-int ctim,ftim;
-Rklst rk[110];
-LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam){
-	switch(msg){
-		case WM_PAINT:{
-			ValidateRect(hWnd,NULL);
-		}break;
-		case WM_DESTROY:{
-			PostQuitMessage(0);
-		}break;
-		case WM_KEYDOWN:{
-			down[wParam]=1;
-		}break;
-		case WM_KEYUP:{
-			down[wParam]=0;
-		}break;
-		case WM_LBUTTONDOWN:{
-			if(Show::nowt-lstarrow>500){
-				lstarrow=Show::nowt;
-				sprintf(buf,"add arrow %f %f %f %f %f %d %d",Entity_3d::camx+cos(rot)*1.5,Entity_3d::camz-sin(rot)*1.5,cos(rot)*7.f,-sin(rot)*7.f,rot,++etot,id);
-				tcp.add(buf);
-			}
-		}break;
-	}
-	return ::DefWindowProc(hWnd,msg,wParam,lParam);
-}
+Evtlist evtlist;
+Ranklist ranklist;
+int gamestat;
+int lstattack;
 float sqr(float x){
 	return x*x;
+}
+float dis(float x,float y,float xx,float yy){
+	return sqrt(sqr(x-xx)+sqr(y-yy));
+}
+void init(){
+	int i,j;
+	tcp.init("106.14.159.92",81);
+	//tcp.init("218.62.22.209",233);
+	ply[0]=new Player("system");
+	tcp.send("nickname",0,-100.f,-100.f,0.f,0,0);
+	ZeroMemory(buf,10010);
+	tcp.recv();
+	memcpy(S,tcp.GetBuf,sizeof(S));
+	sscanf(S,"%*s%d",&id);
+	etot=id*100000;
+	for(i=1;i<=30;i++){
+		for(j=1;j<=30;j++){
+			mp[i][j]=S[(i-1)*30+j-1];
+			if(mp[i][j]=='#'){
+				p[n]=new Wall();
+				p[n]->posx=i;
+				p[n]->posz=j;
+				n++;
+			}
+		}
+	}
+	int tstx=rand()%30+1,tstz=rand()%30+1;
+	while(mp[tstx][tstz]=='#'){
+		tstx=rand()%30+1;
+		tstz=rand()%30+1;
+	}
+	Entity_3d::camx=tstx;
+	Entity_3d::camz=tstz;
+	lst=clock();
+	tcp.LEN=0;
+	ply[id]=new Player("new birth");
+}
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam){
+	if(gamestat==0){
+		if(msg==WM_PAINT){
+			ValidateRect(hWnd,NULL);
+		}
+		if(msg==WM_DESTROY){
+			PostQuitMessage(0);
+		}
+		if(msg==WM_KEYDOWN){
+			if(wParam>='A'&&wParam<='Z'){
+				if(nicknamelen<=10){
+					nickname[nicknamelen++]=wParam-'A'+'a';
+				}
+			}
+			if(wParam==8){
+				if(nicknamelen){
+					nickname[--nicknamelen]=0;
+				}
+			}
+			if(wParam==13){
+				init();
+				gamestat=1;
+			}
+		}
+	}else if(gamestat==1){
+		switch(msg){
+			case WM_PAINT:{
+				ValidateRect(hWnd,NULL);
+			}break;
+			case WM_DESTROY:{
+				PostQuitMessage(0);
+			}break;
+			case WM_KEYDOWN:{
+				down[wParam]=1;
+			}break;
+			case WM_KEYUP:{
+				down[wParam]=0;
+			}break;
+			case WM_LBUTTONDOWN:{
+				if(ply[id]->weapon==1){
+					if(clock()-lstattack>500){
+						lstattack=clock();
+						sprintf(buf,"add arrow %f %f %f %f %f %d %d",Entity_3d::camx+cos(rot)*1.5,Entity_3d::camz-sin(rot)*1.5,cos(rot)*7.f,-sin(rot)*7.f,rot,++etot,id);
+						tcp.add(buf);
+					}
+				}
+				else if(ply[id]->weapon==2){
+					if(clock()-lstattack>1000){
+						lstattack=clock();
+						for(set<int>::iterator it=liv.begin();it!=liv.end();it++){
+							if((*it)!=id&&dis(ply[*it]->posx,ply[*it]->posz,ply[id]->posx,ply[id]->posz)<2){
+								sprintf(buf,"damage %d %d %d",*it,2,id);
+								tcp.add(buf);
+							}
+						}
+					}
+				}
+			}break;
+		}
+	}
+	return ::DefWindowProc(hWnd,msg,wParam,lParam);
 }
 void Render(){
 	Show::Device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,D3DCOLOR_XRGB(155,155,0),1.0f,0);
@@ -97,92 +153,13 @@ void Render(){
 	int i;
 	set<int>::iterator it;
 	for(i=0;i<n;i++){
-		if((it=Sd.find(p[i]->eid))!=Sd.end()){
-			Sd.erase(it);
-			swap(p[i],p[n-1]);
-			i--;
-			n--;
-			delete p[n];
-		}else{
-			p[i]->Render();
-			if(p[i]->typ=="arrow"){
-				Arrow* P=(Arrow*)p[i];
-				//*
-				if(p[i]->posx<1||p[i]->posx>30||p[i]->posz<1||p[i]->posz>30){
-					swap(p[i],p[n-1]);
-					i--;
-					n--;
-					delete p[n];
-					continue;
-				}
-				if(P->bel!=id&&sqr(p[i]->posx-Entity_3d::camx)+sqr(p[i]->posz-Entity_3d::camz)<1){
-					sprintf(buf,"del %d",p[i]->eid);
-					tcp.add(buf);
-					ply[id]->hp--;
-					if(!ply[id]->hp){
-						sprintf(buf,"kill %d %d",P->bel,id);
-						tcp.add(buf);
-						ply[id]->hp=1;
-						ply[id]->exp=0;
-						ply[id]->lev=1;
-						int x=rand()%30+1;
-						int y=rand()%30+1;
-						while(mp[x][y]=='#'){
-							x=rand()%30+1;
-							y=rand()%30+1;
-						}
-						Entity_3d::camx=x;
-						Entity_3d::camz=y;
-					}
-					continue ;
-				}
-				if(mp[(int)p[i]->posx][(int)p[i]->posz]=='#'){
-					swap(p[i],p[n-1]);
-					i--;
-					n--;
-					delete p[n];
-					continue ;
-				}
-			}
-		}
+		p[i]->Render();
 	}
-	int tcnt=0;
 	for(it=liv.begin();it!=liv.end();it++){
 		ply[*it]->Render();
-		tcnt++;
-		sprintf(rk[tcnt].name,"%s",ply[*it]->nickname);
-		rk[tcnt].kil=ply[*it]->kil;
-		rk[tcnt].id=*it;
 	}
-	sort(rk+1,rk+tcnt+1);
-	ftim=clock()-ftim;
-	char rklst[510];
-	memset(rklst,0,sizeof(rklst));
-	char *trk=rklst;
-	sprintf(trk,"≈≈––∞Ò      \n");
-	while(*trk){
-		trk++;
-	}
-	for(i=1;i<=tcnt;i++){
-		sprintf(trk,"%d %s %d\n",i,rk[i].name,rk[i].kil);
-		while(*trk){
-			trk++;
-		}
-	}
-	TXT::Render(rklst);
-	while(evthd!=evttl&&evtq[evthd].tim<clock()-4000){
-		(evthd%=1000)++;
-	}
-	char evtbuf[510];
-	char *tevt=evtbuf;
-	memset(evtbuf,0,sizeof(evtbuf));
-	for(i=evthd;i!=evttl;(i%=1000)++){
-		sprintf(tevt,"%s\n",evtq[i].des);
-		while(*tevt){
-			tevt++;
-		}
-	}
-	TXT::Render(evtbuf,DT_TOP|DT_LEFT,D3DCOLOR_XRGB(255,0,0));
+	evtlist.Render();
+	ranklist.Render();
 	Show::Device->EndScene();
 	Show::Device->Present(NULL,NULL,NULL,NULL);
 }
@@ -196,13 +173,33 @@ float getfloat(int &i){
 	sscanf(s[++i],"%f",&re);
 	return re;
 }
+void chkdead(int damfrom){
+	if(ply[id]->hp<=0){
+		sprintf(buf,"kill %d %d",damfrom,id);
+		tcp.add(buf);
+		ply[id]->hp=1;
+		ply[id]->exp=0;
+		ply[id]->lev=1;
+		ply[id]->weapon=1;
+		ply[id]->skill1=0;
+		ply[id]->skill2=0;
+		int x=rand()%30+1;
+		int y=rand()%30+1;
+		while(mp[x][y]=='#'){
+			x=rand()%30+1;
+			y=rand()%30+1;
+		}
+		ply[id]->posx=x;
+		ply[id]->posz=y;
+		Entity_3d::camx=x;
+		Entity_3d::camz=y;
+	}
+}
 void Communicate(){
-	ctim=clock();
 	int i;
 	tcp.send(nickname,id,Entity_3d::camx,Entity_3d::camz,rot,ply[id]->hp,ply[id]->kil);
 	ZeroMemory(buf,10010);
 	tcp.recv();
-	ctim=clock()-ctim;
 	memcpy(S,tcp.GetBuf,sizeof(S));
 	int tot=0;
 	s[tot=1]=&S[0];
@@ -232,6 +229,15 @@ void Communicate(){
 			int tid=getint(i);
 			Sd.insert(tid);
 		}
+		else if(!strcmp(s[i],"damage")){
+			int tid=getint(i);
+			int tdm=getint(i);
+			int tfrm=getint(i);
+			if(tid==id){
+				ply[id]->hp-=tdm;
+				chkdead(tfrm);
+			}
+		}
 		else if(!strcmp(s[i],"CLOSE")){
 			int t=getint(i);
 			liv.erase(t);
@@ -244,9 +250,11 @@ void Communicate(){
 			sprintf(buf,"%d %d\n",p1,id);
 			char tmp[110];
 			sprintf(tmp,"%s killed %s",ply[p1]->nickname,ply[p2]->nickname);
-			evtq[(evttl%=1000)++]=evt(tmp,clock());
-			ply[p1]->exp++;
-			ply[p1]->kil++;
+			evtlist.add(tmp);
+			if(p1==id){
+				ply[p1]->exp++;
+				ply[p1]->kil++;
+			}
 		}
 		else{
 			char nm[110];
@@ -267,7 +275,6 @@ void Communicate(){
 				ply[t]=new Player(nm);
 				liv.insert(t);
 			}
-
 			ply[t]->posx=tx;
 			ply[t]->posz=tz;
 			ply[t]->rot=trot;
@@ -297,11 +304,54 @@ void Move(){
 	}
 }
 void Refresh(){
+	int i;
+	set<int>::iterator it;
+	for(i=0;i<n;i++){
+		if((it=Sd.find(p[i]->eid))!=Sd.end()){
+			Sd.erase(it);
+			swap(p[i],p[n-1]);
+			i--;
+			n--;
+			delete p[n];
+		}
+		else{
+			p[i]->Refresh();
+			if(p[i]->typ=="arrow"){
+				Arrow* P=(Arrow*)p[i];
+				//*
+				if(p[i]->posx<1||p[i]->posx>30||p[i]->posz<1||p[i]->posz>30){
+					swap(p[i],p[n-1]);
+					i--;
+					n--;
+					delete p[n];
+					continue;
+				}
+				if(P->bel!=id&&sqr(p[i]->posx-Entity_3d::camx)+sqr(p[i]->posz-Entity_3d::camz)<1){
+					sprintf(buf,"del %d",p[i]->eid);
+					tcp.add(buf);
+					ply[id]->hp--;
+					chkdead(P->bel);
+					continue;
+				}
+				if(mp[(int)p[i]->posx][(int)p[i]->posz]=='#'){
+					swap(p[i],p[n-1]);
+					i--;
+					n--;
+					delete p[n];
+					continue;
+				}
+			}
+		}
+	}
 	Move();
 	if(ply[id]->exp>ply[id]->lev){
 		ply[id]->lev++;
 		ply[id]->hp++;
 		ply[id]->exp=0;
+	}
+	ranklist.clr();
+	for(it=liv.begin();it!=liv.end();it++){;
+		ranklist.add(ply[*it]->nickname,ply[*it]->kil,*it);
 	}
 	lst=clock();
 }
@@ -309,8 +359,16 @@ void Release(){
 	DX::Device->Release();
 	DX::d3d9->Release();
 }
+void RenderStart(){
+	Show::Device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,D3DCOLOR_XRGB(255,255,255),1.0f,0);
+	Show::Device->BeginScene();
+	char tmp[110];
+	sprintf(tmp,"Please enter your name and press ENTER\n%s",nickname);
+	TXT::Render(tmp,DT_CENTER|DT_VCENTER,D3DCOLOR_XRGB(0,0,0),25,15);
+	Show::Device->EndScene();
+	Show::Device->Present(NULL,NULL,NULL,NULL);
+}
 INT WINAPI WinMain(HINSTANCE hInst,HINSTANCE,LPSTR,INT){
-	int i,j;
 	srand((unsigned int)time(NULL));
 	WNDCLASSEX wc={sizeof(WNDCLASSEX),CS_CLASSDC,WndProc,0L,0L,GetModuleHandle(NULL), NULL, NULL, NULL, NULL,TEXT("client"),NULL };
 	RegisterClassEx(&wc);
@@ -321,41 +379,8 @@ INT WINAPI WinMain(HINSTANCE hInst,HINSTANCE,LPSTR,INT){
 	}
 	ShowWindow(hWnd,SW_SHOW);
 	UpdateWindow(hWnd);
-	FILE* plyinit=fopen("player.txt","r");
-	fscanf(plyinit,"%*s%s",nickname);
-	fclose(plyinit);
-	tcp.init("106.14.159.92",81);
-	ply[0]=new Player("system");
-	tcp.send("nickname",0,-100.f,-100.f,0.f,0,0);
-	ZeroMemory(buf,10010);
-	tcp.recv();
-	memcpy(S,tcp.GetBuf,sizeof(S));
-	sscanf(S,"%*s%d",&id);
-	etot=id*100000;
-	for(i=1;i<=30;i++){
-		for(j=1;j<=30;j++){
-			mp[i][j]=S[(i-1)*30+j-1];
-			if(mp[i][j]=='#'){
-				p[n]=new Wall();
-				p[n]->posx=i;
-				p[n]->posz=j;
-				n++;
-			}
-		}
-	}
-	int tstx=rand()%30+1,tstz=rand()%30+1;
-	while(mp[tstx][tstz]=='#'){
-		tstx=rand()%30+1;
-		tstz=rand()%30+1;
-	}
-	Entity_3d::camx=tstx;
-	Entity_3d::camz=tstz;
 	MSG msg={0};
-	lst=clock();
-	tcp.LEN=0;
-	ply[id]=new Player("new birth");
 	for(;msg.message!=WM_QUIT;){
-		ftim=clock();
 		POINT m_mouse;
 		GetCursorPos(&m_mouse);
 		ScreenToClient(hWnd,&m_mouse);
@@ -366,9 +391,14 @@ INT WINAPI WinMain(HINSTANCE hInst,HINSTANCE,LPSTR,INT){
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		Refresh();
-		Communicate();
-		Render();
+		if(gamestat==0){
+			RenderStart();
+		}
+		if(gamestat==1){
+			Refresh();
+			Communicate();
+			Render();
+		}
 	}
 	Release();
 	return 0;

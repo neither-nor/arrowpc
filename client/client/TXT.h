@@ -10,6 +10,7 @@ public:
 	static void Render(char *txt);
 	static void Render(char *txt,DWORD format);
 	static void Render(char *txt,DWORD format,DWORD color);
+	static void Render(char *txt,DWORD format,DWORD color,int h,unsigned int w);
 	static bool inited;
 };
 

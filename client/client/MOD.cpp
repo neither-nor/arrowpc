@@ -16,9 +16,11 @@ MOD::~MOD(void){
 void MOD::init(char *nm){
 	HRESULT hr=E_FAIL;
 	LPD3DXBUFFER pAdjBuffer=NULL,pMtrlBuffer=NULL;
-	hr=D3DXLoadMeshFromX(nm,D3DXMESH_MANAGED,Device,&pAdjBuffer,&pMtrlBuffer,NULL,&g_dwMtrlNum,&g_pMesh);
+	char adr[110];
+	sprintf(adr,"src/%s",nm);
+	hr=D3DXLoadMeshFromX(adr,D3DXMESH_MANAGED,Device,&pAdjBuffer,&pMtrlBuffer,NULL,&g_dwMtrlNum,&g_pMesh);
 	if(FAILED(hr)){
-		MessageBox(0,"!",0,0);
+		MessageBox(0,"Mod init error",0,0);
 	}
 	//获取材质和纹理
 	CHAR szTextureFile[MAX_PATH];
@@ -31,7 +33,7 @@ void MOD::init(char *nm){
 			if(NULL!=pMtrl[i].pTextureFilename)//纹理文件名不为空
 			{
 				ZeroMemory(szTextureFile,sizeof(szTextureFile));
-				sprintf(szTextureFile,"%s",pMtrl[i].pTextureFilename);
+				sprintf(szTextureFile,"src/%s",pMtrl[i].pTextureFilename);
 				LPDIRECT3DTEXTURE9 pTexture=NULL;
 				D3DXCreateTextureFromFileA(Device,szTextureFile,&pTexture);//创建新纹理
 				g_vecPTextures.push_back(pTexture);//添加纹理

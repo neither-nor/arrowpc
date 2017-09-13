@@ -14,6 +14,9 @@ public:
 	int lev;
 	int exp;
 	int kil;
+	int weapon;
+	int skill1;
+	int skill2;
 private:
 	LPD3DXMESH TextMesh;
 	static MOD mod;

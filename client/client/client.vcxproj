@@ -74,12 +74,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Arrow.cpp" />
+    <ClCompile Include="Evtlist.cpp" />
     <ClCompile Include="HealthPoint.cpp" />
     <ClCompile Include="main.cpp">
       <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <ClCompile Include="MOD.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Ranklist.cpp" />
     <ClCompile Include="Show.cpp" />
     <ClCompile Include="TCPtransport.cpp" />
     <ClCompile Include="TXT.cpp" />
@@ -87,26 +89,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arrow.h" />
+    <ClInclude Include="Evtlist.h" />
     <ClInclude Include="HealthPoint.h" />
     <ClInclude Include="MOD.h" />
     <ClInclude Include="Player.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
+    <ClInclude Include="Ranklist.h" />
     <ClInclude Include="Show.h" />
+    <ClInclude Include="stdafx.h" />
     <ClInclude Include="TCPtransport.h" />
     <ClInclude Include="TXT.h" />
     <ClInclude Include="Wall.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="arrow.x" />
-    <None Include="player.txt" />
-    <None Include="wyr.x" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="client.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="head.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -111,3 +111,6 @@ Show::~Show(){
 Entity_3d::~Entity_3d(){
 
 }
+void Entity_3d::Refresh(){
+
+}

@@ -31,9 +31,12 @@ Arrow::Arrow(float _posx,float _posz,float _spdx,float _spdz,float _rot,int _bel
 	}
 }
 void Arrow::Render(){
+	preSet();
+	mod.Render();
+}
+
+void Arrow::Refresh(){
 	posx+=spdx*(nowt-lst)/1000;
 	posz+=spdz*(nowt-lst)/1000;
 	lst=nowt;
-	preSet();
-	mod.Render();
 }

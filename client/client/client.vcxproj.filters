@@ -42,6 +42,12 @@
     <ClCompile Include="HealthPoint.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Evtlist.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Ranklist.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arrow.h">
@@ -65,35 +71,17 @@
     <ClInclude Include="TXT.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="HealthPoint.h">
       <Filter>头文件</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="arrow.x">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="wyr.x">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="player.txt">
-      <Filter>资源文件</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="client.rc">
-      <Filter>资源文件</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="head.jpg">
-      <Filter>资源文件</Filter>
-    </Image>
+    <ClInclude Include="Evtlist.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Ranklist.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

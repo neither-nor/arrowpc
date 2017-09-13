@@ -28,3 +28,8 @@ void TXT::Render(char *txt,DWORD format,DWORD color){
 	g_font->DrawText(NULL,txt,(INT)strlen(txt),&g_client_rect,format,color);
 	g_font->Release();
 }
+void TXT::Render(char *txt,DWORD format,DWORD color,int h,unsigned int w){
+	D3DXCreateFont(Device,h,w,20,0,FALSE,DEFAULT_CHARSET,0,0,0,"Arial",&g_font);
+	g_font->DrawText(NULL,txt,(INT)strlen(txt),&g_client_rect,format,color);
+	g_font->Release();
+}
