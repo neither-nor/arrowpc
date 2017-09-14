@@ -33,7 +33,11 @@ struct VERTEX2{
 	DWORD color;
 };
 #define FVF_VERTEX2 (D3DFVF_XYZ|D3DFVF_DIFFUSE)
-
+struct VERTEX3{
+	float x,y,z,rhw;
+	float u,v;
+};
+#define FVF_VERTEX3 (D3DFVF_XYZRHW|D3DFVF_TEX1)
 class DX{
 public:
 	DX();
@@ -65,6 +69,7 @@ protected:
 
 class Entity_Screen:public Show{
 public:
+	virtual ~Entity_Screen();
 	virtual void preSet();
 	virtual void Render()=0;
 	virtual void Refresh()=0;

@@ -24,6 +24,7 @@
 #include "TXT.h"
 #include "Evtlist.h"
 #include "Ranklist.h"
+#include "Texshow.h"
 using namespace std;
 TCPtransport tcp;
 Show *p[5010];
@@ -46,6 +47,7 @@ Evtlist evtlist;
 Ranklist ranklist;
 int gamestat;
 int lstattack;
+Texshow weaponbox;
 float sqr(float x){
 	return x*x;
 }
@@ -55,7 +57,9 @@ float dis(float x,float y,float xx,float yy){
 void init(){
 	int i,j;
 	tcp.init("106.14.159.92",81);
-	//tcp.init("218.62.22.209",233);
+//	tcp.init("218.62.22.209",233);
+	weaponbox.init(250,625,50,50);
+	weaponbox.cls=TEXCLS_WEAPON;
 	ply[0]=new Player("system");
 	tcp.send("nickname",0,-100.f,-100.f,0.f,0,0);
 	ZeroMemory(buf,10010);
@@ -151,6 +155,7 @@ void Render(){
 	Show::Device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,D3DCOLOR_XRGB(155,155,0),1.0f,0);
 	Show::Device->BeginScene();
 	int i;
+	
 	set<int>::iterator it;
 	for(i=0;i<n;i++){
 		p[i]->Render();
@@ -160,6 +165,8 @@ void Render(){
 	}
 	evtlist.Render();
 	ranklist.Render();
+	weaponbox.frm=ply[id]->weapon;
+	weaponbox.Render();
 	Show::Device->EndScene();
 	Show::Device->Present(NULL,NULL,NULL,NULL);
 }

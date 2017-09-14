@@ -48,6 +48,7 @@ Entity_3d::Entity_3d(){
 
 bool DX::initD3d(HWND &hWnd){
 	if(NULL==(d3d9=Direct3DCreate9(D3D_SDK_VERSION))){
+		MessageBox(0,"Create d3d9 failed",0,0);
 		return false;
 	}
 	D3DPRESENT_PARAMETERS d3dpp; 
@@ -61,6 +62,7 @@ bool DX::initD3d(HWND &hWnd){
     d3dpp.AutoDepthStencilFormat = D3DFMT_D16;  
 	d3dpp.MultiSampleType = D3DMULTISAMPLE_4_SAMPLES;
 	if(FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,hWnd,D3DCREATE_SOFTWARE_VERTEXPROCESSING,&d3dpp,&Device))){
+		MessageBox(0,"Create device failed",0,0);
 		return false;
 	}
 	Device->SetRenderState(D3DRS_CULLMODE,D3DCULL_NONE);
@@ -70,7 +72,8 @@ bool DX::initD3d(HWND &hWnd){
 }
 
 void Entity_Screen::preSet(){
-
+	Device->SetFVF(FVF_VERTEX3);
+	Device->SetRenderState(D3DRS_LIGHTING,FALSE);
 }
 
 void Entity_3d::preSet(){
@@ -109,6 +112,9 @@ Show::~Show(){
 
 }
 Entity_3d::~Entity_3d(){
+
+}
+Entity_Screen::~Entity_Screen(){
 
 }
 void Entity_3d::Refresh(){

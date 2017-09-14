@@ -84,6 +84,7 @@
     <ClCompile Include="Ranklist.cpp" />
     <ClCompile Include="Show.cpp" />
     <ClCompile Include="TCPtransport.cpp" />
+    <ClCompile Include="Texshow.cpp" />
     <ClCompile Include="TXT.cpp" />
     <ClCompile Include="Wall.cpp" />
   </ItemGroup>
@@ -97,6 +98,7 @@
     <ClInclude Include="Show.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TCPtransport.h" />
+    <ClInclude Include="Texshow.h" />
     <ClInclude Include="TXT.h" />
     <ClInclude Include="Wall.h" />
   </ItemGroup>
